@@ -1,0 +1,37 @@
+wsl <--> raspi ssh:
+	https://www.it-connect.fr/wsl-2-port-forwarding-comment-acceder-a-sa-machine-virtuelle-a-distance/
+
+
+
+Rediriger le port 22 de SSH de WSL --> à un autre port sur Windows pour un acces avec l'IP Windows
+
+	netsh interface portproxy add v4tov4 listenport=8080 listenaddress=<WINDOW_IP ou 0.0.0.0 pour Any> connectport=8000 connectaddress=<WSL2_IP>
+	
+	ex:
+	netsh interface portproxy add v4tov4 listenport=2222 listenaddress=0.0.0.0 connectport=22 connectaddress=$($(wsl hostname -I).Trim());
+
+Voir la redirection:
+	netsh interface portproxy show v4tov4
+
+Supprimer les redirections:
+	netsh interface portproxy reset
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Autoriser les ports choisis avec les regles Parafeu:
+
+	New-NetFirewallRule -DisplayName "WSL2" -Direction Inbound -LocalPort 2222 -Protocol TCP -Action Allow
+	
+	New-NetFirewallRule -DisplayName "WSL2" -Direction Outbound -LocalPort 2222 -Protocol TCP -Action Allow
+
+Voir les regles ajoutées:
+	Get-NetFirewallRule -DisplayName "*WSL2*"
+	
+Supprimer les regles ajoutées:
+	Remove-NetFirewallRule -DisplayName "NomDeLaRegle"
+	
+	Supprimer toutes les règles contenant "WSL2"
+		Get-NetFirewallRule -DisplayName "*WSL2*" | Remove-NetFirewallRule
+------------------------------------------------------------------------------------------------------------------------
+
+Lancer SSH sur un autre pc connecté au meme reseau:
+	ssh -p 2222 <utilisateurWSL>@<IP_WINDOWS>
